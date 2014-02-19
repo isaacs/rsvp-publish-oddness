@@ -211,11 +211,11 @@ Promise.prototype = {
     'finally': function (callback, label) {
         var constructor = this.constructor;
         return this.then(function (value) {
-            return constructor.cast(callback()).then(function () {
+            return constructor.resolve(callback()).then(function () {
                 return value;
             });
         }, function (reason) {
-            return constructor.cast(callback()).then(function () {
+            return constructor.resolve(callback()).then(function () {
                 throw reason;
             });
         }, label);

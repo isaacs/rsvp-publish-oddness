@@ -1,5 +1,5 @@
 'use strict';
-/* global  $a_slice */
+/* global  arraySlice */
 var Promise = require('./promise')['default'];
 var isArray = require('./utils').isArray;
 /**
@@ -134,13 +134,11 @@ exports['default'] = function denodeify(nodeFunc, argumentNames) {
     var asArray = argumentNames === true;
     var asHash = isArray(argumentNames);
     function denodeifiedFunction() {
-        var nodeArgs;
         var length = arguments.length;
-        nodeArgs = new Array(length);
+        var nodeArgs = new Array(length);
         for (var i = 0; i < length; i++) {
             nodeArgs[i] = arguments[i];
         }
-        ;
         var thisArg;
         if (!asArray && !asHash && argumentNames) {
             console.warn('Deprecation: RSVP.denodeify() doesn\'t allow setting the ' + '"this" binding anymore. Use yourFunction.bind(yourThis) instead.');
@@ -150,17 +148,15 @@ exports['default'] = function denodeify(nodeFunc, argumentNames) {
         }
         return Promise.all(nodeArgs).then(function (nodeArgs$2) {
             return new Promise(resolver);
-            // sweet.js has a bug, this resolver can't defined in the constructor
-            // or the $a_slice macro doesn't work
+            // sweet.js has a bug, this resolver can't be defined in the constructor
+            // or the arraySlice macro doesn't work
             function resolver(resolve, reject) {
                 function callback() {
-                    var args;
                     var length$2 = arguments.length;
-                    args = new Array(length$2);
+                    var args = new Array(length$2);
                     for (var i$2 = 0; i$2 < length$2; i$2++) {
                         args[i$2] = arguments[i$2];
                     }
-                    ;
                     var error = args[0];
                     var value = args[1];
                     if (error) {
@@ -186,7 +182,6 @@ exports['default'] = function denodeify(nodeFunc, argumentNames) {
             }
         });
     }
-    ;
     denodeifiedFunction.__proto__ = nodeFunc;
     return denodeifiedFunction;
 };

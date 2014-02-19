@@ -95,12 +95,15 @@ exports['default'] = function filter(promises, filterFn, label) {
             filtered[i] = filterFn(values[i]);
         }
         return Promise.all(filtered, label).then(function (filtered$2) {
-            var results = [];
+            var results = new Array(length);
+            var newLength = 0;
             for (var i$2 = 0; i$2 < length; i$2++) {
                 if (filtered$2[i$2] === true) {
-                    results.push(values[i$2]);
+                    results[newLength] = values[i$2];
+                    newLength++;
                 }
             }
+            results.length = newLength;
             return results;
         });
     });

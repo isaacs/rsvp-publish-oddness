@@ -1,5 +1,8 @@
 import Promise from "./promise";
-import { isArray, isNonThenable } from "./utils";
+import {
+  isArray,
+  isNonThenable
+} from "./utils";
 
 /**
   `RSVP.allSettled` is similar to `RSVP.all`, but instead of implementing
@@ -98,7 +101,7 @@ export default function allSettled(entries, label) {
       }
     }
   }, label);
-};
+}
 
 function fulfilled(value) {
   return { state: 'fulfilled', value: value };
@@ -107,5 +110,4 @@ function fulfilled(value) {
 function rejected(reason) {
   return { state: 'rejected', reason: reason };
 }
-
 

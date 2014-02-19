@@ -40,7 +40,7 @@ function flush() {
         var callback = tuple[0], arg = tuple[1];
         callback(arg);
     }
-    queue = [];
+    queue.length = 0;
 }
 var scheduleFlush;
 // Decide what async method to use to triggering processing of queued callbacks:

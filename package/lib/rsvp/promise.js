@@ -1,7 +1,11 @@
 import { config } from "./config";
 import EventTarget from "./events";
 import instrument from './instrument';
-import { objectOrFunction, isFunction, now } from './utils';
+import {
+  objectOrFunction,
+  isFunction,
+  now
+} from './utils';
 import cast from './promise/cast';
 import all from './promise/all';
 import race from './promise/race';
@@ -14,7 +18,6 @@ var counter = 0;
 function noop() {}
 
 export default Promise;
-
 
 /**
   Promise objects represent the eventual result of an asynchronous operation. The
@@ -502,11 +505,11 @@ Promise.prototype = {
     var constructor = this.constructor;
 
     return this.then(function(value) {
-      return constructor.cast(callback()).then(function(){
+      return constructor.resolve(callback()).then(function(){
         return value;
       });
     }, function(reason) {
-      return constructor.cast(callback()).then(function(){
+      return constructor.resolve(callback()).then(function(){
         throw reason;
       });
     }, label);

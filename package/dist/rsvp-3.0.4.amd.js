@@ -2,27 +2,7 @@
   @class RSVP
   @module RSVP
   */
-define('rsvp/all', [
-    './promise',
-    'exports'
-], function (__dependency1__, __exports__) {
-    'use strict';
-    var Promise = __dependency1__['default'];
-    /**
-      This is a convenient alias for `RSVP.Promise.all`.
-
-      @method all
-      @static
-      @for RSVP
-      @param {Array} array Array of promises.
-      @param {String} label An optional label. This is useful
-      for tooling.
-    */
-    __exports__['default'] = function all(array, label) {
-        return Promise.all(array, label);
-    };
-});
-define('rsvp/all_settled', [
+define('rsvp/all-settled', [
     './promise',
     './utils',
     'exports'
@@ -133,6 +113,26 @@ define('rsvp/all_settled', [
         };
     }
 });
+define('rsvp/all', [
+    './promise',
+    'exports'
+], function (__dependency1__, __exports__) {
+    'use strict';
+    var Promise = __dependency1__['default'];
+    /**
+      This is a convenient alias for `RSVP.Promise.all`.
+
+      @method all
+      @static
+      @for RSVP
+      @param {Array} array Array of promises.
+      @param {String} label An optional label. This is useful
+      for tooling.
+    */
+    __exports__['default'] = function all(array, label) {
+        return Promise.all(array, label);
+    };
+});
 define('rsvp/asap', ['exports'], function (__exports__) {
     'use strict';
     __exports__['default'] = function asap(callback, arg) {
@@ -176,7 +176,7 @@ define('rsvp/asap', ['exports'], function (__exports__) {
             var callback = tuple[0], arg = tuple[1];
             callback(arg);
         }
-        queue = [];
+        queue.length = 0;
     }
     var scheduleFlush;
     // Decide what async method to use to triggering processing of queued callbacks:
@@ -262,21 +262,21 @@ define('rsvp/defer', [
 });
 define('rsvp/events', ['exports'], function (__exports__) {
     'use strict';
-    var indexOf = function (callbacks, callback) {
+    function indexOf(callbacks, callback) {
         for (var i = 0, l = callbacks.length; i < l; i++) {
             if (callbacks[i] === callback) {
                 return i;
             }
         }
         return -1;
-    };
-    var callbacksFor = function (object) {
+    }
+    function callbacksFor(object) {
         var callbacks = object._promiseCallbacks;
         if (!callbacks) {
             callbacks = object._promiseCallbacks = {};
         }
         return callbacks;
-    };
+    }
     /**
       @class RSVP.EventTarget
     */
@@ -424,152 +424,21 @@ define('rsvp/filter', [
                 filtered[i] = filterFn(values[i]);
             }
             return Promise.all(filtered, label).then(function (filtered$2) {
-                var results = [];
+                var results = new Array(length);
+                var newLength = 0;
                 for (var i$2 = 0; i$2 < length; i$2++) {
                     if (filtered$2[i$2] === true) {
-                        results.push(values[i$2]);
+                        results[newLength] = values[i$2];
+                        newLength++;
                     }
                 }
+                results.length = newLength;
                 return results;
             });
         });
     };
 });
-define('rsvp/hash', [
-    './promise',
-    './utils',
-    'exports'
-], function (__dependency1__, __dependency2__, __exports__) {
-    'use strict';
-    var Promise = __dependency1__['default'];
-    var isNonThenable = __dependency2__.isNonThenable;
-    var keysOf = __dependency2__.keysOf;
-    /**
-      `RSVP.hash` is similar to `RSVP.all`, but takes an object instead of an array
-      for its `promises` argument.
-
-      Returns a promise that is fulfilled when all the given promises have been
-      fulfilled, or rejected if any of them become rejected. The returned promise
-      is fulfilled with a hash that has the same key names as the `promises` object
-      argument. If any of the values in the object are not promises, they will
-      simply be copied over to the fulfilled object.
-
-      Example:
-
-      ```javascript
-      var promises = {
-        myPromise: RSVP.resolve(1),
-        yourPromise: RSVP.resolve(2),
-        theirPromise: RSVP.resolve(3),
-        notAPromise: 4
-      };
-
-      RSVP.hash(promises).then(function(hash){
-        // hash here is an object that looks like:
-        // {
-        //   myPromise: 1,
-        //   yourPromise: 2,
-        //   theirPromise: 3,
-        //   notAPromise: 4
-        // }
-      });
-      ````
-
-      If any of the `promises` given to `RSVP.hash` are rejected, the first promise
-      that is rejected will be given as the reason to the rejection handler.
-
-      Example:
-
-      ```javascript
-      var promises = {
-        myPromise: RSVP.resolve(1),
-        rejectedPromise: RSVP.reject(new Error("rejectedPromise")),
-        anotherRejectedPromise: RSVP.reject(new Error("anotherRejectedPromise")),
-      };
-
-      RSVP.hash(promises).then(function(hash){
-        // Code here never runs because there are rejected promises!
-      }, function(reason) {
-        // reason.message === "rejectedPromise"
-      });
-      ```
-
-      An important note: `RSVP.hash` is intended for plain JavaScript objects that
-      are just a set of keys and values. `RSVP.hash` will NOT preserve prototype
-      chains.
-
-      Example:
-
-      ```javascript
-      function MyConstructor(){
-        this.example = RSVP.resolve("Example");
-      }
-
-      MyConstructor.prototype = {
-        protoProperty: RSVP.resolve("Proto Property")
-      };
-
-      var myObject = new MyConstructor();
-
-      RSVP.hash(myObject).then(function(hash){
-        // protoProperty will not be present, instead you will just have an
-        // object that looks like:
-        // {
-        //   example: "Example"
-        // }
-        //
-        // hash.hasOwnProperty('protoProperty'); // false
-        // 'undefined' === typeof hash.protoProperty
-      });
-      ```
-
-      @method hash
-      @static
-      @for RSVP
-      @param {Object} promises
-      @param {String} label optional string that describes the promise.
-      Useful for tooling.
-      @return {Promise} promise that is fulfilled when all properties of `promises`
-      have been fulfilled, or rejected if any of them become rejected.
-    */
-    __exports__['default'] = function hash(object, label) {
-        return new Promise(function (resolve, reject) {
-            var results = {};
-            var keys = keysOf(object);
-            var remaining = keys.length;
-            var entry, property;
-            if (remaining === 0) {
-                resolve(results);
-                return;
-            }
-            function fulfilledTo(property) {
-                return function (value) {
-                    results[property] = value;
-                    if (--remaining === 0) {
-                        resolve(results);
-                    }
-                };
-            }
-            function onRejection(reason) {
-                remaining = 0;
-                reject(reason);
-            }
-            for (var i = 0; i < keys.length; i++) {
-                property = keys[i];
-                entry = object[property];
-                if (isNonThenable(entry)) {
-                    results[property] = entry;
-                    if (--remaining === 0) {
-                        resolve(results);
-                    }
-                } else {
-                    Promise.resolve(entry).then(fulfilledTo(property), onRejection);
-                }
-            }
-        });
-    };
-});
-define('rsvp/hash_settled', [
+define('rsvp/hash-settled', [
     './promise',
     './utils',
     'exports'
@@ -729,6 +598,140 @@ define('rsvp/hash_settled', [
         };
     }
 });
+define('rsvp/hash', [
+    './promise',
+    './utils',
+    'exports'
+], function (__dependency1__, __dependency2__, __exports__) {
+    'use strict';
+    var Promise = __dependency1__['default'];
+    var isNonThenable = __dependency2__.isNonThenable;
+    var keysOf = __dependency2__.keysOf;
+    /**
+      `RSVP.hash` is similar to `RSVP.all`, but takes an object instead of an array
+      for its `promises` argument.
+
+      Returns a promise that is fulfilled when all the given promises have been
+      fulfilled, or rejected if any of them become rejected. The returned promise
+      is fulfilled with a hash that has the same key names as the `promises` object
+      argument. If any of the values in the object are not promises, they will
+      simply be copied over to the fulfilled object.
+
+      Example:
+
+      ```javascript
+      var promises = {
+        myPromise: RSVP.resolve(1),
+        yourPromise: RSVP.resolve(2),
+        theirPromise: RSVP.resolve(3),
+        notAPromise: 4
+      };
+
+      RSVP.hash(promises).then(function(hash){
+        // hash here is an object that looks like:
+        // {
+        //   myPromise: 1,
+        //   yourPromise: 2,
+        //   theirPromise: 3,
+        //   notAPromise: 4
+        // }
+      });
+      ````
+
+      If any of the `promises` given to `RSVP.hash` are rejected, the first promise
+      that is rejected will be given as the reason to the rejection handler.
+
+      Example:
+
+      ```javascript
+      var promises = {
+        myPromise: RSVP.resolve(1),
+        rejectedPromise: RSVP.reject(new Error("rejectedPromise")),
+        anotherRejectedPromise: RSVP.reject(new Error("anotherRejectedPromise")),
+      };
+
+      RSVP.hash(promises).then(function(hash){
+        // Code here never runs because there are rejected promises!
+      }, function(reason) {
+        // reason.message === "rejectedPromise"
+      });
+      ```
+
+      An important note: `RSVP.hash` is intended for plain JavaScript objects that
+      are just a set of keys and values. `RSVP.hash` will NOT preserve prototype
+      chains.
+
+      Example:
+
+      ```javascript
+      function MyConstructor(){
+        this.example = RSVP.resolve("Example");
+      }
+
+      MyConstructor.prototype = {
+        protoProperty: RSVP.resolve("Proto Property")
+      };
+
+      var myObject = new MyConstructor();
+
+      RSVP.hash(myObject).then(function(hash){
+        // protoProperty will not be present, instead you will just have an
+        // object that looks like:
+        // {
+        //   example: "Example"
+        // }
+        //
+        // hash.hasOwnProperty('protoProperty'); // false
+        // 'undefined' === typeof hash.protoProperty
+      });
+      ```
+
+      @method hash
+      @static
+      @for RSVP
+      @param {Object} promises
+      @param {String} label optional string that describes the promise.
+      Useful for tooling.
+      @return {Promise} promise that is fulfilled when all properties of `promises`
+      have been fulfilled, or rejected if any of them become rejected.
+    */
+    __exports__['default'] = function hash(object, label) {
+        return new Promise(function (resolve, reject) {
+            var results = {};
+            var keys = keysOf(object);
+            var remaining = keys.length;
+            var entry, property;
+            if (remaining === 0) {
+                resolve(results);
+                return;
+            }
+            function fulfilledTo(property) {
+                return function (value) {
+                    results[property] = value;
+                    if (--remaining === 0) {
+                        resolve(results);
+                    }
+                };
+            }
+            function onRejection(reason) {
+                remaining = 0;
+                reject(reason);
+            }
+            for (var i = 0; i < keys.length; i++) {
+                property = keys[i];
+                entry = object[property];
+                if (isNonThenable(entry)) {
+                    results[property] = entry;
+                    if (--remaining === 0) {
+                        resolve(results);
+                    }
+                } else {
+                    Promise.resolve(entry).then(fulfilledTo(property), onRejection);
+                }
+            }
+        });
+    };
+});
 define('rsvp/instrument', [
     './config',
     './utils',
@@ -863,7 +866,7 @@ define('rsvp/node', [
     'exports'
 ], function (__dependency1__, __dependency2__, __exports__) {
     'use strict';
-    /* global  $a_slice */
+    /* global  arraySlice */
     var Promise = __dependency1__['default'];
     var isArray = __dependency2__.isArray;
     /**
@@ -998,13 +1001,11 @@ define('rsvp/node', [
         var asArray = argumentNames === true;
         var asHash = isArray(argumentNames);
         function denodeifiedFunction() {
-            var nodeArgs;
             var length = arguments.length;
-            nodeArgs = new Array(length);
+            var nodeArgs = new Array(length);
             for (var i = 0; i < length; i++) {
                 nodeArgs[i] = arguments[i];
             }
-            ;
             var thisArg;
             if (!asArray && !asHash && argumentNames) {
                 console.warn('Deprecation: RSVP.denodeify() doesn\'t allow setting the ' + '"this" binding anymore. Use yourFunction.bind(yourThis) instead.');
@@ -1014,17 +1015,15 @@ define('rsvp/node', [
             }
             return Promise.all(nodeArgs).then(function (nodeArgs$2) {
                 return new Promise(resolver);
-                // sweet.js has a bug, this resolver can't defined in the constructor
-                // or the $a_slice macro doesn't work
+                // sweet.js has a bug, this resolver can't be defined in the constructor
+                // or the arraySlice macro doesn't work
                 function resolver(resolve, reject) {
                     function callback() {
-                        var args;
                         var length$2 = arguments.length;
-                        args = new Array(length$2);
+                        var args = new Array(length$2);
                         for (var i$2 = 0; i$2 < length$2; i$2++) {
                             args[i$2] = arguments[i$2];
                         }
-                        ;
                         var error = args[0];
                         var value = args[1];
                         if (error) {
@@ -1050,7 +1049,6 @@ define('rsvp/node', [
                 }
             });
         }
-        ;
         denodeifiedFunction.__proto__ = nodeFunc;
         return denodeifiedFunction;
     };
@@ -1280,11 +1278,11 @@ define('rsvp/promise', [
         'finally': function (callback, label) {
             var constructor = this.constructor;
             return this.then(function (value) {
-                return constructor.cast(callback()).then(function () {
+                return constructor.resolve(callback()).then(function () {
                     return value;
                 });
             }, function (reason) {
-                return constructor.cast(callback()).then(function () {
+                return constructor.resolve(callback()).then(function () {
                     throw reason;
                 });
             }, label);
@@ -1916,10 +1914,10 @@ define('rsvp', [
     './rsvp/events',
     './rsvp/node',
     './rsvp/all',
-    './rsvp/all_settled',
+    './rsvp/all-settled',
     './rsvp/race',
     './rsvp/hash',
-    './rsvp/hash_settled',
+    './rsvp/hash-settled',
     './rsvp/rethrow',
     './rsvp/defer',
     './rsvp/config',

@@ -1,4 +1,4 @@
-/* global  $a_slice */
+/* global  arraySlice */
 
 import Promise from "./promise";
 import { isArray } from "./utils";
@@ -136,8 +136,7 @@ export default function denodeify(nodeFunc, argumentNames) {
   var asHash = isArray(argumentNames);
 
   function denodeifiedFunction() {
-    var nodeArgs;
-    $a_slice(nodeArgs, arguments);
+    var nodeArgs = arraySlice(arguments);
 
     var thisArg;
 
@@ -152,12 +151,11 @@ export default function denodeify(nodeFunc, argumentNames) {
     return Promise.all(nodeArgs).then(function(nodeArgs) {
       return new Promise(resolver);
 
-      // sweet.js has a bug, this resolver can't defined in the constructor
-      // or the $a_slice macro doesn't work
+      // sweet.js has a bug, this resolver can't be defined in the constructor
+      // or the arraySlice macro doesn't work
       function resolver(resolve, reject) {
         function callback() {
-          var args;
-          $a_slice(args, arguments);
+          var args = arraySlice(arguments);
 
           var error = args[0];
           var value = args[1];
@@ -187,9 +185,9 @@ export default function denodeify(nodeFunc, argumentNames) {
         nodeFunc.apply(thisArg, nodeArgs);
       }
     });
-  };
+  }
 
   denodeifiedFunction.__proto__ = nodeFunc;
 
   return denodeifiedFunction;
-};
+}

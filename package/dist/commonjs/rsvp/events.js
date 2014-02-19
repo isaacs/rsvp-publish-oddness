@@ -1,19 +1,19 @@
 'use strict';
-var indexOf = function (callbacks, callback) {
+function indexOf(callbacks, callback) {
     for (var i = 0, l = callbacks.length; i < l; i++) {
         if (callbacks[i] === callback) {
             return i;
         }
     }
     return -1;
-};
-var callbacksFor = function (object) {
+}
+function callbacksFor(object) {
     var callbacks = object._promiseCallbacks;
     if (!callbacks) {
         callbacks = object._promiseCallbacks = {};
     }
     return callbacks;
-};
+}
 /**
   @class RSVP.EventTarget
 */

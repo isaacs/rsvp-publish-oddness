@@ -1,5 +1,8 @@
 import Promise from "./promise";
-import { isNonThenable, keysOf } from './utils';
+import {
+  isNonThenable,
+  keysOf
+} from './utils';
 
 /**
   `RSVP.hashSettled` is similar to `RSVP.allSettled`, but takes an object
@@ -144,7 +147,7 @@ export default function hashSettled(object, label) {
       }
     }
   });
-};
+}
 
 function fulfilled(value) {
   return { state: 'fulfilled', value: value };
